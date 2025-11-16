@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Моя Коллекция Мемов</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Courier New', monospace;
+            background: #000;
+            background-image: 
+                repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,0,255,0.1) 10px, rgba(255,0,255,0.1) 20px),
+                repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(0,255,255,0.1) 10px, rgba(0,255,255,0.1) 20px);
+            min-height: 100vh;
+            padding: 20px;
+            color: #0f0;
+            animation: bgScroll 20s linear infinite;
+        }
+
+        @keyframes bgScroll {
+            0% { background-position: 0 0, 0 0; }
+            100% { background-position: 100px 100px, -100px -100px; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: #ff00ff;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: rgba(0, 255, 0, 0.1);
+            border: 3px dashed #00ff00;
+            box-shadow: 0 0 20px #ff00ff, 0 0 40px #00ffff;
+            animation: headerGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes headerGlow {
+            0% { box-shadow: 0 0 20px #ff00ff, 0 0 40px #00ffff; }
+            100% { box-shadow: 0 0 40px #00ffff, 0 0 60px #ff00ff; }
+        }
+
+        h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 3px 3px 0 #00ffff, -3px -3px 0 #ff00ff;
+            animation: titleWiggle 0.5s ease-in-out infinite;
+        }
+
+        @keyframes titleWiggle {
+            0%, 100% { transform: rotate(-1deg); }
+            50% { transform: rotate(1deg); }
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: #00ff00;
+            text-shadow: 2px 2px 0 #000;
+        }
+
+        .add-meme-section {
+            background: #1a1a1a;
+            padding: 30px;
+            border: 3px solid #00ff00;
+            margin-bottom: 40px;
+            box-shadow: 5px 5px 0 #ff00ff, 10px 10px 0 #00ffff;
+            position: relative;
+        }
+
+        .add-meme-section::before {
+            content: '⚠️ ДОБАВИТЬ МЕМ ⚠️';
+            position: absolute;
+            top: -15px;
+            left: 20px;
+            background: #000;
+            padding: 5px 15px;
+            color: #ff00ff;
+            font-weight: bold;
+            border: 2px solid #00ff00;
+        }
+
+        .add-meme-section h2 {
+            color: #00ff00;
+            margin-bottom: 20px;
+            margin-top: 10px;
+            text-shadow: 2px 2px 0 #ff00ff;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #00ffff;
+            font-weight: bold;
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 3px solid #00ff00;
+            background: #000;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #ff00ff;
+            box-shadow: 0 0 10px #ff00ff;
+            animation: inputPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes inputPulse {
+            0%, 100% { box-shadow: 0 0 10px #ff00ff; }
+            50% { box-shadow: 0 0 20px #00ffff; }
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .btn {
+            background: #000;
+            color: #0f0;
+            padding: 15px 30px;
+            border: 3px solid #00ff00;
+            font-size: 16px;
+            font-weight: bold;
+            font-family: 'Comic Sans MS', cursive;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            text-transform: uppercase;
+            box-shadow: 5px 5px 0 #ff00ff;
+        }
+
+        .btn:hover {
+            background: #00ff00;
+            color: #000;
+            box-shadow: 7px 7px 0 #ff00ff, 0 0 20px #00ff00;
+            transform: translate(-2px, -2px);
+        }
+
+        .btn:active {
+            transform: translate(5px, 5px);
+            box-shadow: 0 0 0 #ff00ff;
+        }
+
+        .memes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .meme-card {
+            background: #1a1a1a;
+            border: 3px solid #00ff00;
+            overflow: hidden;
+            box-shadow: 5px 5px 0 #ff00ff, 10px 10px 0 #00ffff;
+            transition: all 0.3s;
+            animation: fadeIn 0.5s ease-in;
+            position: relative;
+        }
+
+        .meme-card::before {
+            content: '▶';
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #ff00ff;
+            color: #000;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            border: 2px solid #00ff00;
+            z-index: 10;
+            animation: rotate 4s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px) rotate(-2deg);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) rotate(0deg);
+            }
+        }
+
+        .meme-card:hover {
+            transform: rotate(-1deg) scale(1.02);
+            box-shadow: 7px 7px 0 #ff00ff, 14px 14px 0 #00ffff, 0 0 30px #00ff00;
+        }
+
+        .meme-content {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            cursor: pointer;
+            background: #000;
+        }
+
+        .meme-content iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .meme-thumbnail {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.3s;
+        }
+
+        .meme-content:hover .meme-thumbnail {
+            opacity: 0.8;
+        }
+
+        .play-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            background: #ff00ff;
+            border: 4px solid #00ff00;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            pointer-events: none;
+            box-shadow: 0 0 20px #ff00ff;
+            animation: playPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes playPulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+        }
+
+        .play-button::after {
+            content: '';
+            width: 0;
+            height: 0;
+            border-left: 25px solid #00ff00;
+            border-top: 15px solid transparent;
+            border-bottom: 15px solid transparent;
+            margin-left: 5px;
+        }
+
+        .meme-content:hover .play-button {
+            transform: translate(-50%, -50%) scale(1.2) rotate(360deg);
+            background: #00ff00;
+            box-shadow: 0 0 30px #00ff00;
+        }
+
+        .meme-content:hover .play-button::after {
+            border-left-color: #ff00ff;
+        }
+
+        .video-platform {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ff00ff;
+            color: #000;
+            padding: 5px 10px;
+            border: 2px solid #00ff00;
+            font-size: 0.8em;
+            font-weight: bold;
+            font-family: 'Comic Sans MS', cursive;
+            box-shadow: 3px 3px 0 #00ffff;
+        }
+
+        .meme-info {
+            padding: 20px;
+            background: #000;
+        }
+
+        .meme-title {
+            font-size: 1.3em;
+            color: #00ff00;
+            margin-bottom: 10px;
+            font-weight: bold;
+            text-shadow: 2px 2px 0 #ff00ff;
+        }
+
+        .meme-description {
+            color: #00ffff;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        .meme-date {
+            color: #ff00ff;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .delete-btn {
+            background: #ff0000;
+            color: #000;
+            border: 2px solid #ffff00;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            font-family: 'Comic Sans MS', cursive;
+            transition: all 0.3s;
+            box-shadow: 3px 3px 0 #ff00ff;
+        }
+
+        .delete-btn:hover {
+            background: #ffff00;
+            color: #000;
+            box-shadow: 5px 5px 0 #ff00ff;
+            transform: translate(-2px, -2px);
+        }
+
+        .open-youtube-btn {
+            background: #0000ff;
+            color: #fff;
+            border: 2px solid #00ff00;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            font-family: 'Comic Sans MS', cursive;
+            margin-top: 10px;
+            margin-right: 10px;
+            box-shadow: 3px 3px 0 #ff00ff;
+            transition: all 0.3s;
+        }
+
+        .open-youtube-btn:hover {
+            background: #00ff00;
+            color: #000;
+            box-shadow: 5px 5px 0 #ff00ff;
+            transform: translate(-2px, -2px);
+        }
+
+        .help-text {
+            color: #00ffff;
+            font-size: 0.9em;
+            margin-top: 5px;
+            font-style: italic;
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #00ff00;
+            font-size: 1.5em;
+            text-shadow: 3px 3px 0 #ff00ff;
+            border: 3px dashed #ff00ff;
+            background: rgba(255, 0, 255, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+
+            .memes-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="co
