@@ -267,6 +267,7 @@
             height: 100%;
             object-fit: cover;
             transition: opacity 0.3s;
+            display: block;
         }
 
         .meme-content:hover .meme-thumbnail {
@@ -290,6 +291,7 @@
             pointer-events: none;
             box-shadow: 0 0 20px #ff00ff;
             animation: playPulse 2s ease-in-out infinite;
+            z-index: 5;
         }
 
         @keyframes playPulse {
@@ -329,6 +331,7 @@
             font-weight: bold;
             font-family: 'Comic Sans MS', cursive;
             box-shadow: 3px 3px 0 #00ffff;
+            z-index: 5;
         }
 
         .meme-info {
@@ -418,6 +421,20 @@
             background: rgba(255, 0, 255, 0.1);
         }
 
+        /* Fallback preview для видео без превью */
+        .no-preview {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #000 0%, #1a1a1a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+        }
+
         @media (max-width: 768px) {
             h1 {
                 font-size: 2em;
@@ -500,26 +517,30 @@
         }
 
         function parseVideoUrl(url) {
+            // YouTube
             let match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^#&?\/]{11})/);
             if (match) {
                 return {
                     platform: 'youtube',
                     id: match[1],
                     embedUrl: `https://www.youtube.com/embed/${match[1]}?autoplay=1`,
-                    thumbnail: `https://img.youtube.com/vi/${match[1]}/maxresdefault.jpg`
+                    thumbnail: `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg`
                 };
             }
 
+            // Vimeo
             match = url.match(/vimeo\.com\/(\d+)/);
             if (match) {
                 return {
                     platform: 'vimeo',
                     id: match[1],
                     embedUrl: `https://player.vimeo.com/video/${match[1]}?autoplay=1`,
-                    thumbnail: null
+                    thumbnail: null,
+                    needsVimeoData: true
                 };
             }
 
+            // Dailymotion
             match = url.match(/dailymotion\.com\/video\/([^_]+)/);
             if (match) {
                 return {
@@ -530,6 +551,7 @@
                 };
             }
 
+            // Direct video
             if (url.match(/\.(mp4|webm|ogg)$/i)) {
                 return {
                     platform: 'direct',
@@ -549,6 +571,7 @@
                 const data = await response.json();
                 return data.title || 'YouTube видео';
             } catch (error) {
+                console.error('Error fetching YouTube title:', error);
                 return 'YouTube видео';
             }
         }
@@ -562,6 +585,7 @@
                     thumbnail: data[0].thumbnail_large
                 };
             } catch (error) {
+                console.error('Error fetching Vimeo data:', error);
                 return { title: 'Vimeo видео', thumbnail: null };
             }
         }
@@ -587,6 +611,7 @@
                     'direct': '🎞️'
                 };
 
+                // Для прямых видео
                 if (meme.isDirect) {
                     return `
                         <div class="meme-card">
@@ -606,14 +631,19 @@
                     `;
                 }
 
+                // Для видео с превью
+                const previewHtml = meme.thumbnail 
+                    ? `<img src="${meme.thumbnail}" alt="${meme.title}" class="meme-thumbnail" 
+                           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                       <div class="no-preview" style="display: none;">🎬</div>
+                       <div class="play-button"></div>`
+                    : `<div class="no-preview">🎬</div>
+                       <div class="play-button"></div>`;
+
                 return `
                     <div class="meme-card">
                         <div class="meme-content" onclick="playVideo('${meme.firebaseKey}')" id="meme-${meme.firebaseKey}">
-                            ${meme.thumbnail ? `
-                                <img src="${meme.thumbnail}" alt="${meme.title}" class="meme-thumbnail" 
-                                     onerror="this.src='https://via.placeholder.com/640x360/000000/00ff00?text=ВИДЕО'">
-                                <div class="play-button"></div>
-                            ` : ''}
+                            ${previewHtml}
                             <div class="video-platform">${platformEmoji[meme.platform] || '🎬'} ${meme.platform.toUpperCase()}</div>
                         </div>
                         <div class="meme-info">
@@ -681,6 +711,7 @@
 
             updateSyncStatus('🔄 Синхронизация...', 'syncing');
 
+            // Получаем заголовок если его нет
             if (!title) {
                 if (videoData.platform === 'youtube') {
                     title = await getYouTubeTitle(videoData.id);
@@ -693,15 +724,21 @@
                 }
             }
 
+            // Для Vimeo получаем превью, если его еще нет
+            if (videoData.platform === 'vimeo' && !videoData.thumbnail) {
+                const vimeoData = await getVimeoData(videoData.id);
+                videoData.thumbnail = vimeoData.thumbnail;
+            }
+
             const newMeme = {
                 platform: videoData.platform,
                 id: videoData.id,
                 embedUrl: videoData.embedUrl,
-                thumbnail: videoData.thumbnail,
+                thumbnail: videoData.thumbnail || '',
                 isDirect: videoData.isDirect || false,
                 title: title,
                 description: description,
-                date: new Date().toLocaleDateString('ru-RU', { 
+                date: new Date().toLocaleString('ru-RU', { 
                     year: 'numeric', 
                     month: 'long', 
                     day: 'numeric',
@@ -765,11 +802,11 @@
                         platform: 'youtube',
                         id: 'NoTdHFKCUCk',
                         embedUrl: 'https://www.youtube.com/embed/NoTdHFKCUCk?autoplay=1',
-                        thumbnail: 'https://img.youtube.com/vi/NoTdHFKCUCk/maxresdefault.jpg',
+                        thumbnail: 'https://img.youtube.com/vi/NoTdHFKCUCk/hqdefault.jpg',
                         isDirect: false,
                         title: title,
                         description: 'Мой первый мем в коллекции!',
-                        date: new Date().toLocaleDateString('ru-RU', { 
+                        date: new Date().toLocaleString('ru-RU', { 
                             year: 'numeric', 
                             month: 'long', 
                             day: 'numeric',
